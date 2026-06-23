@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#92400e" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>訂金收據產生器</title>
+<title>定金收據產生器</title>
 <style>
   :root {
     --bg: #f4f1ea;
@@ -293,14 +293,14 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>訂金收據產生器</h1>
+    <h1>定金收據產生器</h1>
     <p>選擇房源、輸入承租方姓名，即可產生並下載收據圖片。</p>
   </header>
 
   <!-- 匯款資訊（顯示給承租方匯款用，不會出現在收據圖片上） -->
   <section class="bank-card">
     <h3>💳 匯款資訊</h3>
-    <p class="bank-note">請將訂金匯款至下列帳戶，完成後再向我們索取收據。</p>
+    <p class="bank-note">請將定金匯款至下列帳戶，完成後再向我們索取收據。</p>
     <div class="bank-rows">
       <div class="bank-row"><span class="bk">銀行</span><span class="bv">(013) 國泰世華銀行</span></div>
       <div class="bank-row"><span class="bk">戶名</span><span class="bv">黃仲綸</span></div>
@@ -331,7 +331,7 @@
 
       <div class="row2">
         <div class="field">
-          <label for="amount">訂金金額 (NT$)</label>
+          <label for="amount">定金金額 (NT$)</label>
           <input id="amount" type="number" min="0" step="100" placeholder="10000" />
         </div>
         <div class="field">
@@ -347,8 +347,8 @@
 
       <div class="field">
         <label for="clause">不退款條款（會印在收據上）</label>
-        <textarea id="clause">一、本訂金於收訖後即生效，用以保留上述房源之承租權利。承租方確認知悉並同意：本訂金一經收取，無論任何原因恕不退還，亦不得要求折抵以外之返還。
-二、承租方完成入住手續後，本訂金將全額轉作租賃押金；如約定押金總額高於本訂金，承租方應於入住當日一次補足差額。轉作後之押金，於租約期滿、結清各項費用且房屋無毀損時，依租約約定退還。</textarea>
+        <textarea id="clause">一、本定金於收訖後即生效，用以保留上述房源之承租權利。承租方確認知悉並同意：本定金一經收取，無論任何原因恕不退還，亦不得要求折抵以外之返還。
+二、承租方完成入住手續後，本定金將全額轉作租賃押金；如約定押金總額高於本定金，承租方應於入住當日一次補足差額。轉作後之押金，於租約期滿、結清各項費用且房屋無毀損時，依租約約定退還。</textarea>
       </div>
 
       <button class="btn" id="downloadBtn">下載收據圖片 (PNG)</button>
@@ -360,7 +360,7 @@
       <div class="receipt" id="receipt">
         <div class="receipt-top">
           <span class="badge">DEPOSIT RECEIPT</span>
-          <h2>訂金收據</h2>
+          <h2>定金收據</h2>
           <div class="sub">收 款 證 明</div>
         </div>
         <div class="receipt-body">
@@ -371,18 +371,18 @@
           <div class="line"><span class="k">收款日期</span><span class="v" id="vDate">—</span></div>
 
           <div class="amount-box">
-            <span class="label">訂金金額</span>
+            <span class="label">定金金額</span>
             <span class="num" id="vAmount">NT$ 0</span>
           </div>
 
           <div class="clause">
-            <div class="title">⚠ 訂金不退款聲明</div>
+            <div class="title">⚠ 定金不退款聲明</div>
             <p id="vClause">—</p>
           </div>
         </div>
         <div class="receipt-foot">
           <div class="sign">本收據由海豹生活股份有限公司系統產生<br>毋需簽章，電子收據與正本具同等效力。</div>
-          <div class="stamp">訂金<br>收訖<br>不退</div>
+          <div class="stamp">定金<br>收訖<br>不退</div>
         </div>
       </div>
       <div class="hint">下方預覽即為下載的內容。圖片會以高解析度輸出。</div>
@@ -485,7 +485,7 @@ function drawReceipt() {
   // 標題
   ctx.fillStyle = "#ffffff";
   ctx.font = "800 72px 'PingFang TC','Noto Sans TC','Microsoft JhengHei',sans-serif";
-  ctx.fillText("訂　金　收　據", 60, 150);
+  ctx.fillText("定　金　收　據", 60, 150);
   ctx.font = "500 26px 'PingFang TC','Noto Sans TC',sans-serif";
   ctx.fillStyle = "rgba(255,255,255,.85)";
   ctx.fillText("收 款 證 明　/　DEPOSIT RECEIPT", 64, 210);
@@ -531,7 +531,7 @@ function drawReceipt() {
   ctx.fill();
   ctx.fillStyle = "#92400e";
   ctx.font = "600 30px 'PingFang TC',sans-serif";
-  ctx.fillText("訂金金額", 96, y + 70);
+  ctx.fillText("定金金額", 96, y + 70);
   ctx.font = "800 60px 'PingFang TC',sans-serif";
   ctx.textAlign = "right";
   ctx.fillText(fmtMoney($("amount").value), W - 96, y + 76);
@@ -539,7 +539,7 @@ function drawReceipt() {
   y += 110 + 40;
 
   // 不退款條款
-  const clauseText = $("clause").value.trim() || "本訂金收訖後恕不退還。";
+  const clauseText = $("clause").value.trim() || "本定金收訖後恕不退還。";
   ctx.fillStyle = "#fef2f2";
   const boxTop = y;
   // 先量測高度
@@ -555,7 +555,7 @@ function drawReceipt() {
 
   ctx.fillStyle = "#b91c1c";
   ctx.font = "800 32px 'PingFang TC',sans-serif";
-  ctx.fillText("⚠ 訂金不退款聲明", 96, boxTop + 56);
+  ctx.fillText("⚠ 定金不退款聲明", 96, boxTop + 56);
   ctx.fillStyle = "#7f1d1d";
   ctx.font = "400 28px 'PingFang TC','Noto Sans TC',sans-serif";
   let ly = boxTop + 104;
@@ -580,7 +580,7 @@ function drawReceipt() {
   ctx.fillStyle = "rgba(185,28,28,.6)";
   ctx.font = "800 30px 'PingFang TC',sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("訂金收訖", 0, -8);
+  ctx.fillText("定金收訖", 0, -8);
   ctx.fillText("不退", 0, 30);
   ctx.textAlign = "left";
   ctx.restore();
@@ -636,7 +636,7 @@ $("downloadBtn").addEventListener("click", () => {
   const a = document.createElement("a");
   const safeName = ($("payer").value.trim() || "收據").replace(/[\\/:*?"<>|]/g, "");
   a.href = url;
-  a.download = `訂金收據_${safeName}_${RECEIPT_NO}.png`;
+  a.download = `定金收據_${safeName}_${RECEIPT_NO}.png`;
   a.click();
 });
 
