@@ -2,7 +2,10 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#92400e" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>訂金收據產生器</title>
 <style>
   :root {
@@ -23,11 +26,14 @@
     background: var(--bg);
     color: var(--ink);
     line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
   .wrap {
     max-width: 1080px;
     margin: 0 auto;
-    padding: 28px 20px 60px;
+    padding: calc(28px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));
   }
   header h1 {
     margin: 0 0 4px;
@@ -69,7 +75,7 @@
     padding: 11px 12px;
     border: 1px solid var(--line);
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 16px;
     font-family: inherit;
     color: var(--ink);
     background: #fff;
@@ -190,6 +196,44 @@
     line-height: 1.3;
   }
   canvas { display: none; }
+
+  /* === 手機 RWD（iPhone 14 Pro：393pt 寬）=== */
+  @media (max-width: 480px) {
+    header h1 { font-size: 21px; }
+    header p { font-size: 13px; margin-bottom: 18px; }
+    .layout { gap: 20px; }
+    .card { padding: 18px 16px; border-radius: 14px; }
+    .row2 { grid-template-columns: 1fr; gap: 0; }
+
+    .preview-area { gap: 12px; }
+    .receipt { width: 100%; border-radius: 12px; }
+    .receipt-top { padding: 20px 18px 16px; }
+    .receipt-top .badge { top: 16px; right: 16px; font-size: 10px; padding: 3px 9px; letter-spacing: 1.5px; }
+    .receipt-top h2 { font-size: 23px; letter-spacing: 5px; }
+    .receipt-top .sub { font-size: 12px; letter-spacing: 3px; }
+    .receipt-body { padding: 18px 18px 14px; }
+    .line { font-size: 14px; padding: 9px 0; }
+    .line .k { width: 76px; }
+    .amount-box { padding: 12px 14px; }
+    .amount-box .label { font-size: 13px; }
+    .amount-box .num { font-size: 25px; }
+    .clause { padding: 12px 14px; }
+    .clause .title { font-size: 13px; }
+    .clause p { font-size: 12.5px; line-height: 1.65; }
+    .receipt-foot { padding: 14px 18px 22px; }
+    .sign { font-size: 11px; }
+    .stamp { width: 78px; height: 78px; font-size: 11px; border-width: 2.5px; }
+
+    /* 手機上按鈕固定在底部，單手好按 */
+    .btn { padding: 15px; font-size: 16px; }
+  }
+
+  /* 螢幕極窄時（<360px）再縮一階 */
+  @media (max-width: 360px) {
+    .receipt-top h2 { font-size: 20px; letter-spacing: 3px; }
+    .amount-box .num { font-size: 22px; }
+    .line .k { width: 68px; }
+  }
 </style>
 </head>
 <body>
