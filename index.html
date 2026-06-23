@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>訂金收據產生器</title>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --panel: #ffffff;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #b45309;
+    --accent-soft: #fef3c7;
+    --danger: #b91c1c;
+    --shadow: 0 10px 30px rgba(0,0,0,.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+    letter-spacing: .5px;
+  }
+  header p {
+    margin: 0 0 24px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+  }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(180,83,9,.12);
+  }
+  .field textarea { resize: vertical; min-height: 64px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter .15s, transform .05s;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: translateY(1px); }
+  .btn.secondary {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    margin-top: 10px;
+  }
+
+  /* 預覽區 */
+  .preview-area { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .receipt {
+    width: 600px;
+    max-width: 100%;
+    background: #fffdf8;
+    border: 1px solid #ece4d2;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .receipt-top {
+    background: linear-gradient(135deg, #92400e, #b45309);
+    color: #fff;
+    padding: 26px 30px 22px;
+    position: relative;
+  }
+  .receipt-top .badge {
+    position: absolute;
+    top: 22px; right: 26px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    border: 1px solid rgba(255,255,255,.5);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+  .receipt-top h2 { margin: 0; font-size: 28px; letter-spacing: 8px; }
+  .receipt-top .sub { margin-top: 6px; font-size: 13px; opacity: .85; letter-spacing: 4px; }
+  .receipt-body { padding: 24px 30px 18px; }
+  .line {
+    display: flex;
+    padding: 11px 0;
+    border-bottom: 1px dashed #e7ddc8;
+    font-size: 15px;
+  }
+  .line .k { width: 96px; color: var(--muted); flex-shrink: 0; }
+  .line .v { font-weight: 600; color: var(--ink); word-break: break-all; }
+  .amount-box {
+    margin: 18px 0 6px;
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .amount-box .label { font-size: 14px; color: #92400e; font-weight: 600; }
+  .amount-box .num { font-size: 30px; font-weight: 800; color: #92400e; }
+  .clause {
+    margin: 16px 0 6px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .clause .title {
+    color: var(--danger);
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .clause p { margin: 0; font-size: 13px; color: #7f1d1d; line-height: 1.7; white-space: pre-wrap; }
+  .receipt-foot {
+    padding: 16px 30px 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .sign { font-size: 12px; color: var(--muted); }
+  .sign .name { font-size: 16px; color: var(--ink); font-weight: 700; margin-top: 26px; border-top: 1px solid #d6cdb8; padding-top: 4px; width: 150px; }
+  .stamp {
+    width: 92px; height: 92px;
+    border: 3px solid rgba(185,28,28,.5);
+    border-radius: 50%;
+    color: rgba(185,28,28,.6);
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; font-size: 13px; font-weight: 800;
+    transform: rotate(-12deg);
+    line-height: 1.3;
+  }
+  canvas { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>訂金收據產生器</h1>
+    <p>選擇房源、輸入承租方姓名，即可產生並下載收據圖片。</p>
+  </header>
+
+  <div class="layout">
+    <!-- 表單 -->
+    <section class="card">
+      <div class="field">
+        <label for="property">房源</label>
+        <select id="property"></select>
+      </div>
+      <div class="field" id="customPropWrap" style="display:none;">
+        <label for="customProp">自訂房源名稱</label>
+        <input id="customProp" type="text" placeholder="輸入房源 / 地址" />
+      </div>
+
+      <div class="field">
+        <label for="payer">承租方姓名</label>
+        <input id="payer" type="text" placeholder="例：王小明" />
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="amount">訂金金額 (NT$)</label>
+          <input id="amount" type="number" min="0" step="100" placeholder="10000" />
+        </div>
+        <div class="field">
+          <label for="date">收款日期</label>
+          <input id="date" type="date" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="receiver">收款方</label>
+        <input id="receiver" type="text" value="海豹生活股份有限公司" placeholder="收款公司 / 出租方" />
+      </div>
+
+      <div class="field">
+        <label for="clause">不退款條款（會印在收據上）</label>
+        <textarea id="clause">一、本訂金於收訖後即生效，用以保留上述房源之承租權利。承租方確認知悉並同意：本訂金一經收取，無論任何原因恕不退還，亦不得要求折抵以外之返還。
+二、承租方完成入住手續後，本訂金將全額轉作租賃押金；如約定押金總額高於本訂金，承租方應於入住當日一次補足差額。轉作後之押金，於租約期滿、結清各項費用且房屋無毀損時，依租約約定退還。</textarea>
+      </div>
+
+      <button class="btn" id="downloadBtn">下載收據圖片 (PNG)</button>
+      <button class="btn secondary" id="copyBtn">複製到剪貼簿</button>
+    </section>
+
+    <!-- 預覽 -->
+    <section class="preview-area">
+      <div class="receipt" id="receipt">
+        <div class="receipt-top">
+          <span class="badge">DEPOSIT RECEIPT</span>
+          <h2>訂金收據</h2>
+          <div class="sub">收 款 證 明</div>
+        </div>
+        <div class="receipt-body">
+          <div class="line"><span class="k">收據編號</span><span class="v" id="vNo">—</span></div>
+          <div class="line"><span class="k">房　　源</span><span class="v" id="vProp">—</span></div>
+          <div class="line"><span class="k">承租方</span><span class="v" id="vPayer">—</span></div>
+          <div class="line"><span class="k">收款方</span><span class="v" id="vReceiver">—</span></div>
+          <div class="line"><span class="k">收款日期</span><span class="v" id="vDate">—</span></div>
+
+          <div class="amount-box">
+            <span class="label">訂金金額</span>
+            <span class="num" id="vAmount">NT$ 0</span>
+          </div>
+
+          <div class="clause">
+            <div class="title">⚠ 訂金不退款聲明</div>
+            <p id="vClause">—</p>
+          </div>
+        </div>
+        <div class="receipt-foot">
+          <div class="sign">本收據由海豹生活股份有限公司系統產生<br>毋需簽章，電子收據與正本具同等效力。</div>
+          <div class="stamp">訂金<br>收訖<br>不退</div>
+        </div>
+      </div>
+      <div class="hint">下方預覽即為下載的內容。圖片會以高解析度輸出。</div>
+    </section>
+  </div>
+</div>
+
+<canvas id="canvas" width="1200" height="1500"></canvas>
+
+<script>
+const PROPERTIES = [
+  "公館",
+  "後山埤",
+  "松山",
+  "市政府",
+  "昆陽",
+  "松隆",
+  "中坡南",
+];
+
+const $ = (id) => document.getElementById(id);
+
+// 初始化房源下拉
+const propSel = $("property");
+PROPERTIES.forEach((p) => {
+  const o = document.createElement("option");
+  o.value = p; o.textContent = p;
+  propSel.appendChild(o);
+});
+const customOpt = document.createElement("option");
+customOpt.value = "__custom__";
+customOpt.textContent = "＋ 自訂房源…";
+propSel.appendChild(customOpt);
+
+// 預設日期 = 今天
+$("date").value = new Date().toISOString().slice(0, 10);
+
+// 收據編號（依日期 + 隨機）
+function genNo() {
+  const d = new Date();
+  const ymd = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+  const rnd = Math.floor(1000 + Math.random() * 9000);
+  return `DR-${ymd}-${rnd}`;
+}
+const RECEIPT_NO = genNo();
+
+function fmtMoney(n) {
+  const num = Number(n) || 0;
+  return "NT$ " + num.toLocaleString("en-US");
+}
+function fmtDate(s) {
+  if (!s) return "—";
+  const [y, m, d] = s.split("-");
+  return `${y} 年 ${Number(m)} 月 ${Number(d)} 日`;
+}
+function currentProperty() {
+  if (propSel.value === "__custom__") return $("customProp").value.trim() || "—";
+  return propSel.value;
+}
+
+function render() {
+  $("vNo").textContent = RECEIPT_NO;
+  $("vProp").textContent = currentProperty();
+  $("vPayer").textContent = $("payer").value.trim() || "—";
+  $("vDate").textContent = fmtDate($("date").value);
+  $("vAmount").textContent = fmtMoney($("amount").value);
+  $("vClause").textContent = $("clause").value.trim() || "—";
+  $("vReceiver").textContent = $("receiver").value.trim() || "海豹生活股份有限公司";
+}
+
+// 事件
+propSel.addEventListener("change", () => {
+  $("customPropWrap").style.display = propSel.value === "__custom__" ? "block" : "none";
+  render();
+});
+["customProp","payer","amount","date","receiver","clause"].forEach((id) => {
+  $(id).addEventListener("input", render);
+});
+render();
+
+/* ---------- Canvas 繪圖（用於下載 / 複製） ---------- */
+function drawReceipt() {
+  const W = 1200, H = 1500;
+  const c = $("canvas");
+  c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+
+  // 背景
+  ctx.fillStyle = "#fffdf8";
+  ctx.fillRect(0, 0, W, H);
+
+  // 頂部色塊
+  const grad = ctx.createLinearGradient(0, 0, W, 300);
+  grad.addColorStop(0, "#92400e");
+  grad.addColorStop(1, "#b45309");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, 300);
+
+  ctx.textBaseline = "alphabetic";
+  // 標題
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "800 72px 'PingFang TC','Noto Sans TC','Microsoft JhengHei',sans-serif";
+  ctx.fillText("訂　金　收　據", 60, 150);
+  ctx.font = "500 26px 'PingFang TC','Noto Sans TC',sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,.85)";
+  ctx.fillText("收 款 證 明　/　DEPOSIT RECEIPT", 64, 210);
+
+  // badge 編號
+  ctx.font = "600 24px 'PingFang TC',sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,.9)";
+  ctx.textAlign = "right";
+  ctx.fillText(RECEIPT_NO, W - 60, 100);
+  ctx.textAlign = "left";
+
+  // 明細列
+  let y = 400;
+  const rows = [
+    ["房　　源", currentProperty()],
+    ["承租方", $("payer").value.trim() || "—"],
+    ["收款方", $("receiver").value.trim() || "海豹生活股份有限公司"],
+    ["收款日期", fmtDate($("date").value)],
+  ];
+  ctx.font = "400 30px 'PingFang TC','Noto Sans TC',sans-serif";
+  rows.forEach(([k, v]) => {
+    ctx.fillStyle = "#6b7280";
+    ctx.fillText(k, 64, y);
+    ctx.fillStyle = "#1f2937";
+    ctx.font = "700 32px 'PingFang TC','Noto Sans TC',sans-serif";
+    wrapText(ctx, v, 260, y, W - 320, 44);
+    ctx.font = "400 30px 'PingFang TC','Noto Sans TC',sans-serif";
+    // 虛線
+    ctx.strokeStyle = "#e7ddc8";
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(64, y + 28);
+    ctx.lineTo(W - 64, y + 28);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    y += 86;
+  });
+
+  // 金額框
+  y += 6;
+  ctx.fillStyle = "#fef3c7";
+  roundRect(ctx, 64, y, W - 128, 110, 14);
+  ctx.fill();
+  ctx.fillStyle = "#92400e";
+  ctx.font = "600 30px 'PingFang TC',sans-serif";
+  ctx.fillText("訂金金額", 96, y + 70);
+  ctx.font = "800 60px 'PingFang TC',sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText(fmtMoney($("amount").value), W - 96, y + 76);
+  ctx.textAlign = "left";
+  y += 110 + 40;
+
+  // 不退款條款
+  const clauseText = $("clause").value.trim() || "本訂金收訖後恕不退還。";
+  ctx.fillStyle = "#fef2f2";
+  const boxTop = y;
+  // 先量測高度
+  const lines = measureWrap(ctx, clauseText, W - 200, "400 28px 'PingFang TC','Noto Sans TC',sans-serif");
+  const boxH = 90 + lines.length * 44;
+  roundRect(ctx, 64, boxTop, W - 128, boxH, 14);
+  ctx.fill();
+  ctx.strokeStyle = "#fecaca";
+  ctx.lineWidth = 2;
+  roundRect(ctx, 64, boxTop, W - 128, boxH, 14);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+
+  ctx.fillStyle = "#b91c1c";
+  ctx.font = "800 32px 'PingFang TC',sans-serif";
+  ctx.fillText("⚠ 訂金不退款聲明", 96, boxTop + 56);
+  ctx.fillStyle = "#7f1d1d";
+  ctx.font = "400 28px 'PingFang TC','Noto Sans TC',sans-serif";
+  let ly = boxTop + 104;
+  lines.forEach((ln) => { ctx.fillText(ln, 96, ly); ly += 44; });
+  y = boxTop + boxH + 70;
+
+  // 系統產生註記（取代簽章）
+  ctx.fillStyle = "#9aa0aa";
+  ctx.font = "400 24px 'PingFang TC',sans-serif";
+  ctx.fillText("本收據由海豹生活股份有限公司系統產生，", 64, y + 30);
+  ctx.fillText("毋需簽章，電子收據與正本具同等效力。", 64, y + 66);
+
+  // 印章
+  ctx.save();
+  ctx.translate(W - 200, y + 30);
+  ctx.rotate(-12 * Math.PI / 180);
+  ctx.strokeStyle = "rgba(185,28,28,.55)";
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(0, 0, 78, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = "rgba(185,28,28,.6)";
+  ctx.font = "800 30px 'PingFang TC',sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("訂金收訖", 0, -8);
+  ctx.fillText("不退", 0, 30);
+  ctx.textAlign = "left";
+  ctx.restore();
+  ctx.lineWidth = 1;
+
+  return c;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function measureWrap(ctx, text, maxW, font) {
+  ctx.font = font;
+  const out = [];
+  let line = "";
+  for (const ch of text) {
+    if (ch === "\n") { out.push(line); line = ""; continue; }
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxW && line) {
+      out.push(line);
+      line = ch;
+    } else {
+      line = test;
+    }
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+function wrapText(ctx, text, x, y, maxW, lh) {
+  const lines = measureWrap(ctx, text, maxW, ctx.font);
+  lines.forEach((ln, i) => ctx.fillText(ln, x, y + i * lh));
+}
+
+function validate() {
+  const payer = $("payer").value.trim();
+  if (currentProperty() === "—") { alert("請選擇或輸入房源。"); return false; }
+  if (!payer) { alert("請輸入承租方姓名。"); $("payer").focus(); return false; }
+  return true;
+}
+
+$("downloadBtn").addEventListener("click", () => {
+  if (!validate()) return;
+  const c = drawReceipt();
+  const url = c.toDataURL("image/png");
+  const a = document.createElement("a");
+  const safeName = ($("payer").value.trim() || "收據").replace(/[\\/:*?"<>|]/g, "");
+  a.href = url;
+  a.download = `訂金收據_${safeName}_${RECEIPT_NO}.png`;
+  a.click();
+});
+
+$("copyBtn").addEventListener("click", async () => {
+  if (!validate()) return;
+  const c = drawReceipt();
+  try {
+    const blob = await new Promise((res) => c.toBlob(res, "image/png"));
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    alert("已複製收據圖片到剪貼簿。");
+  } catch (e) {
+    alert("此瀏覽器不支援複製圖片，請改用下載。");
+  }
+});
+</script>
+</body>
+</html>
