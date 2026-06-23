@@ -112,6 +112,53 @@
     margin-top: 10px;
   }
 
+  /* 匯款資訊卡（只在頁面顯示，不進收據） */
+  .bank-card {
+    background: linear-gradient(135deg, #ecfdf5, #ffffff);
+    border: 1px solid #a7f3d0;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 18px 22px 20px;
+    margin-bottom: 24px;
+  }
+  .bank-card h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+    color: #047857;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .bank-card .bank-note { margin: 0 0 14px; font-size: 13px; color: #6b7280; }
+  .bank-rows { display: flex; flex-direction: column; gap: 2px; }
+  .bank-row {
+    display: flex; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #d1fae5;
+    font-size: 15px;
+  }
+  .bank-row:last-child { border-bottom: none; }
+  .bank-row .bk { width: 64px; flex-shrink: 0; color: #6b7280; }
+  .bank-row .bv { font-weight: 700; color: var(--ink); }
+  .bank-row .acct {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 1px;
+    font-size: 18px;
+  }
+  .copy-acct {
+    margin-left: 10px;
+    border: 1px solid #6ee7b7;
+    background: #fff;
+    color: #047857;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .copy-acct:hover { background: #047857; color: #fff; }
+  .copy-acct.copied { background: #047857; color: #fff; border-color: #047857; }
+
   /* 預覽區 */
   .preview-area { display: flex; flex-direction: column; align-items: center; gap: 16px; }
   .receipt {
@@ -205,6 +252,13 @@
     .card { padding: 18px 16px; border-radius: 14px; }
     .row2 { grid-template-columns: 1fr; gap: 0; }
 
+    .bank-card { padding: 16px 16px 18px; margin-bottom: 20px; }
+    .bank-card h3 { font-size: 16px; }
+    .bank-row { font-size: 14px; padding: 9px 0; }
+    .bank-row .bk { width: 52px; }
+    .bank-row .acct { font-size: 16px; letter-spacing: .5px; }
+    .copy-acct { margin-left: 8px; padding: 6px 10px; font-size: 12px; }
+
     .preview-area { gap: 12px; }
     .receipt { width: 100%; border-radius: 12px; }
     .receipt-top { padding: 20px 18px 16px; }
@@ -242,6 +296,21 @@
     <h1>訂金收據產生器</h1>
     <p>選擇房源、輸入承租方姓名，即可產生並下載收據圖片。</p>
   </header>
+
+  <!-- 匯款資訊（顯示給承租方匯款用，不會出現在收據圖片上） -->
+  <section class="bank-card">
+    <h3>💳 匯款資訊</h3>
+    <p class="bank-note">請將訂金匯款至下列帳戶，完成後再向我們索取收據。</p>
+    <div class="bank-rows">
+      <div class="bank-row"><span class="bk">銀行</span><span class="bv">(013) 國泰世華銀行</span></div>
+      <div class="bank-row"><span class="bk">戶名</span><span class="bv">黃仲綸</span></div>
+      <div class="bank-row">
+        <span class="bk">帳號</span>
+        <span class="bv acct" id="acctNo">255700029466</span>
+        <button class="copy-acct" id="copyAcct" type="button">複製帳號</button>
+      </div>
+    </div>
+  </section>
 
   <div class="layout">
     <!-- 表單 -->
@@ -580,6 +649,29 @@ $("copyBtn").addEventListener("click", async () => {
     alert("已複製收據圖片到剪貼簿。");
   } catch (e) {
     alert("此瀏覽器不支援複製圖片，請改用下載。");
+  }
+});
+
+// 複製匯款帳號（純數字）
+$("copyAcct").addEventListener("click", async () => {
+  const acct = $("acctNo").textContent.replace(/\D/g, "");
+  const btn = $("copyAcct");
+  const done = () => {
+    btn.textContent = "已複製 ✓";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "複製帳號"; btn.classList.remove("copied"); }, 1600);
+  };
+  try {
+    await navigator.clipboard.writeText(acct);
+    done();
+  } catch (e) {
+    // 後備方案
+    const ta = document.createElement("textarea");
+    ta.value = acct; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); }
+    catch (_) { alert("複製失敗，帳號：" + acct); }
+    document.body.removeChild(ta);
   }
 });
 </script>
